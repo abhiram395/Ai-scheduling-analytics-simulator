@@ -5,10 +5,10 @@ from scheduler import *
 from dotenv import load_dotenv
 load_dotenv()
 app = Flask(__name__)
-API_KEY=os.environ.get(VITE_GEMINI_API_KEY)
+API_KEY=os.environ.get("VITE_GEMINI_API_KEY")
 genai.configure(api_key=API_KEY)
 
-model = genai.GenerativeModel("gemini-2.5-flash")
+model = genai.GenerativeModel("gemini-1.5-flash")
 @app.route('/')
 def home():
     return render_template('index.html')
