@@ -2,9 +2,11 @@ import os
 import google.generativeai as genai
 from flask import Flask, request, jsonify, render_template
 from scheduler import *
-
+from dotenv import load_dotenv
+load_dotenv()
 app = Flask(__name__)
-genai.configure(api_key=os.environ.get("AIzaSyCSFD5RH9bR1tSpMK5LncoC0KjnL9GL9_k"))
+API_KEY=os.environ.get(VITE_GEMINI_API_KEY)
+genai.configure(api_key=API_KEY)
 
 model = genai.GenerativeModel("gemini-2.5-flash")
 @app.route('/')
