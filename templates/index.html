@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Task Scheduler</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="container">
+
+<h2>Task Scheduler</h2>
+
+<div class="input-group">
+    <input type="number" id="arrival" placeholder="Arrival Time">
+    <input type="number" id="execution" placeholder="Execution Time">
+    <input type="number" id="priority" placeholder="Priority">
+    <button onclick="addTask()">Add</button>
+    <button onclick="resetTasks()">Reset</button>
+</div>
+
+<table id="taskTable">
+    <tr>
+        <th>ID</th>
+        <th>Arrival</th>
+        <th>Execution</th>
+        <th>Priority</th>
+        <th>Actions</th>
+    </tr>
+</table>
+
+<br>
+
+<div class="input-group">
+    <select id="algo">
+        <option value="FIFO">FIFO</option>
+        <option value="SJF">SJF</option>
+        <option value="PRIORITY">Priority</option>
+        <option value="RR">Round Robin</option>
+    </select>
+
+    <input type="number" id="quantum" placeholder="Quantum (RR only)">
+    <button onclick="runScheduler()">Run Scheduler</button>
+</div>
+
+<h3>Gantt Chart</h3>
+
+<div id="chart"></div>
+<div id="timeline"></div>
+
+</div>
+
+<script>
+// ---------------- GLOBAL STATE ----------------
+let tasks = [];
+let editIndex = -1;
+
+// ---------------- ADD / UPDATE TASK ----------------
+function addTask() {
+    let arrival = document.getElementById("arrival").value;
+    let execution = document.getElementById("execution").value;
+    let priority = document.getElementById("priority").value;
+
+    if (!arrival || !execution || !priority) {
+        alert("Fill all fields");
+        return;
+    }
+
+    let task = {
+        arrival: parseInt(arrival),
+        execution: parseInt(execution),
+        priority: parseInt(priority)
+    };
+
+    if (editIndex === -1) {
+        tasks.push(task);
+    } else {
+        tasks[editIndex] = task;
+        editIndex = -1;
+    }
+
+    renderTable();
+    clearInputs();
+}
+
+// ---------------- RENDER TABLE ----------------
+function renderTable() {
+    let table = document.getElementById("taskTable");
+
+    table.innerHTML = `
+        <tr>
+            <th>ID</th>
+            <th>Arrival</th>
+            <th>Execution</th>
+            <th>Priority</th>
+            <th>Actions</th>
+        </tr>
+    `;
+
+    tasks.forEach((task, index) => {
+        let row = table.insertRow();
+
+        row.insertCell(0).innerText = index + 1;
+        row.insertCell(1).innerText = task.arrival;
+        row.insertCell(2).innerText = task.execution;
+        row.insertCell(3).innerText = task.priority;
+
+        let actions = row.insertCell(4);
+
+        actions.innerHTML = `
+            <div class="actions">
+                <button onclick="editTask(${index})">Edit</button>
+                <button onclick="deleteTask(${index})">Delete</button>
+            </div>
+        `;
+    });
+}
+
+// ---------------- EDIT ----------------
+function editTask(index) {
+    let task = tasks[index];
+
+    document.getElementById("arrival").value = task.arrival;
+    document.getElementById("execution").value = task.execution;
+    document.getElementById("priority").value = task.priority;
+
+    editIndex = index;
+}
+
+// ---------------- DELETE ----------------
+function deleteTask(index) {
+    tasks.splice(index, 1);
+    renderTable();
+}
+
+// ---------------- RESET ----------------
+function resetTasks() {
+    tasks = [];
+    renderTable();
+
+    document.getElementById("chart").innerHTML = "";
+    document.getElementById("timeline").innerHTML = "";
+}
+
+// ---------------- CLEAR INPUT ----------------
+function clearInputs() {
+    document.getElementById("arrival").value = "";
+    document.getElementById("execution").value = "";
+    document.getElementById("priority").value = "";
+}
+
+// ---------------- RUN SCHEDULER ----------------
+function runScheduler() {
+    if (tasks.length === 0) {
+        alert("Add tasks first");
+        return;
+    }
+
+    let algo = document.getElementById("algo").value;
+    let quantum = document.getElementById("quantum").value;
+
+    fetch('/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            tasks: tasks,
+            algorithm: algo,
+            quantum: parseInt(quantum) || 2
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        drawChart(data.timeline); showMetrics(data);
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Error running scheduler");
+    });
+}
+
+// ---------------- DRAW GANTT CHART ----------------
+function drawChart(data) {
+
+    let chart = document.getElementById("chart");
+    let timelineDiv = document.getElementById("timeline");
+
+    chart.innerHTML = "";
+    timelineDiv.innerHTML = "";
+
+    let MAX_WIDTH = 800;
+    let totalTime = data[data.length - 1].end;
+
+    data.forEach(block => {
+
+        let duration = block.end - block.start;
+        let width = (duration / totalTime) * MAX_WIDTH;
+
+        // ----------- CHART BLOCK -----------
+        let chartBlock = document.createElement("div");
+        chartBlock.classList.add("block");
+        chartBlock.style.width = width + "px";
+
+        if (block.task === "IDLE") {
+            chartBlock.classList.add("idle");
+            chartBlock.innerText = "IDLE";
+        } else {
+            chartBlock.classList.add("task" + block.task);
+            chartBlock.innerText = "T" + block.task;
+        }
+
+        chart.appendChild(chartBlock);
+
+        // ----------- TIMELINE BLOCK -----------
+        let timeBlock = document.createElement("div");
+        timeBlock.classList.add("time-block");
+        timeBlock.style.width = width + "px";
+        timeBlock.innerText = block.start;
+
+        timelineDiv.appendChild(timeBlock);
+    });
+
+    // final end time
+    let last = data[data.length - 1];
+    let lastBlock = document.createElement("div");
+    lastBlock.innerText = last.end;
+    timelineDiv.appendChild(lastBlock);
+}
+function showMetrics(data) {
+
+    let oldMetrics = document.getElementById("metrics");
+
+    if (oldMetrics) {
+        oldMetrics.remove();
+    }
+
+    let container = document.querySelector(".container");
+
+    let metricsDiv = document.createElement("div");
+
+    metricsDiv.id = "metrics";
+
+    metricsDiv.innerHTML = `
+        <h3>Performance Metrics</h3>
+
+        <table>
+            <tr>
+                <th>Task</th>
+                <th>Waiting Time</th>
+                <th>Turnaround Time</th>
+                <th>Response Time</th>
+            </tr>
+
+            ${data.metrics.map(m => `
+                <tr>
+                    <td>T${m.task}</td>
+                    <td>${m.waiting_time}</td>
+                    <td>${m.turnaround_time}</td>
+                    <td>${m.response_time}</td>
+                </tr>
+            `).join("")}
+        </table>
+
+        <div class="avg-metrics">
+            <p>Average Waiting Time: ${data.average_waiting_time}</p>
+            <p>Average Turnaround Time: ${data.average_turnaround_time}</p>
+            <p>Average Response Time: ${data.average_response_time}</p>
+        </div>
+    `;
+
+    container.appendChild(metricsDiv);
+}
+
+</script>
+
+</body>
+</html>

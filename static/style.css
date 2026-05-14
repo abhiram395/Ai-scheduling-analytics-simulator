@@ -1,0 +1,149 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #0f172a;
+    color: white;
+    margin: 0;
+    padding: 20px;
+}
+
+/* Container */
+.container {
+    max-width: 900px;
+    margin: auto;
+    background: #111827;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Title */
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+h3{
+    color:white;
+}
+td{
+    color:white;
+}
+
+/* Inputs */
+.input-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+input, select {
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    flex: 1;
+}
+
+/* Buttons */
+button {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 5px;
+    background: #3498db;
+    color: white;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #2980b9;
+}
+
+/* Table */
+table {
+    background: #1e293b;
+    color: white;
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+.metrics-container {
+    margin-top: 30px;
+}
+
+.metrics-title {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.avg-metrics {
+    margin-top: 20px;
+    padding: 15px;
+    background: #1e293b;
+    border-radius: 8px;
+    line-height: 1.8;
+    font-weight: bold;
+    color: white;
+}
+
+th {
+    background: #3498db;
+    color: white;
+}
+
+th, td {
+    padding: 8px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+
+
+
+.block {
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+.block {
+    min-width: 50px;
+    padding: 0 10px;
+}
+
+/* Colors */
+.idle { background: #7f8c8d; }
+
+.task1 { background: #3498db; }
+.task2 { background: #e74c3c; }
+.task3 { background: #2ecc71; }
+.task4 { background: #9b59b6; }
+.task5 { background: #f39c12; }
+.task6 { background: #1abc9c; }
+
+/* Timeline */
+#chart,
+#timeline {
+    display: flex;
+    width: 100%;
+    min-height: 60px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 10px;
+}
+
+.time-block {
+    display: flex;
+    align-items: flex-start;
+    font-size: 12px;
+    box-sizing: border-box;
+}
+
+/* Action buttons */
+.actions button {
+    margin: 2px;
+    padding: 5px 8px;
+    font-size: 12px;
+}
